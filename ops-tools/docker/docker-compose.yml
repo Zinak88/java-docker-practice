@@ -1,0 +1,54 @@
+version: "3.9"
+services:
+  postgres:
+    image:
+      postgres:16.2-alpine
+    restart: always
+    container_name: 'postgres'
+    environment:
+      POSTGRES_DB: "school"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "school"
+    volumes:
+      - /data/postgres:/var/lib/postgresql/data
+      - /data/dump:/db-dump:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - docker-practice-net
+  redis:
+    image:
+      redis:7.2.4-alpine
+    restart: always
+    #command: redis-server
+    container_name: 'redis'
+    ports:
+      - "6379:6379"
+    #network_mode: host
+    networks:
+      - docker-practice-net
+    environment:
+      - REDIS_PORT=6379
+      - REDIS_DATABASES=0
+  myapp:
+    image: myapp:v2
+    ports:
+      - "8888:8080"
+    container_name: 'myapp'
+    networks:
+      - docker-practice-net
+    links:
+      - redis
+    environment:
+      - PORT=8888
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/school
+      #- REDIS_PORT=6379
+      #- REDIS_HOST=redis
+    depends_on:
+      - redis
+      - postgres
+
+networks:
+  docker-practice-net:
+
+
